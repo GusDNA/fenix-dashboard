@@ -442,6 +442,40 @@ body{margin:0;background:var(--bg);}
 
 .kpi-bar-horizontal:hover{
   box-shadow:0 4px 12px rgba(0,0,0,0.15);
+  transform:scaleY(1.15);
+  z-index:10;
+}
+
+.kpi-bar-horizontal::before{
+  content:attr(data-tooltip);
+  position:absolute;
+  bottom:100%;
+  left:50%;
+  transform:translateX(-50%) translateY(-5px);
+  background:rgba(0,0,0,0.9);
+  color:white;
+  padding:6px 12px;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transition:all 0.3s ease;
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+}
+
+.kpi-bar-horizontal:hover::before{
+  opacity:1;
+  transform:translateX(-50%) translateY(-10px);
+}
+
+.kpi-bar-horizontal.planned::before{
+  content:'📅 Planeado: ' attr(data-value);
+}
+
+.kpi-bar-horizontal.actual::before{
+  content:'📊 Real: ' attr(data-value);
 }
 
 .kpi-percent{
@@ -917,10 +951,11 @@ body{margin:0;background:var(--bg);}
 <div class="areas">
   <button class="area-btn active" onclick="cambiarArea('Global',this)">Global</button>
   <button class="area-btn" onclick="cambiarArea('Procura',this)">Procura</button>
-  <button class="area-btn" onclick="cambiarArea('Finanzas',this)">Finanzas</button>
-  <button class="area-btn" onclick="cambiarArea('Fiscal',this)">Fiscal</button>
-  <button class="area-btn" onclick="cambiarArea('Obra',this)">Obra</button>
-  <button class="area-btn" onclick="cambiarArea('RH',this)">RH</button>
+  <button class="area-btn" onclick="cambiarArea('Cuentas por pagar',this)">Cuentas por pagar</button>
+  <button class="area-btn" onclick="cambiarArea('Tesoreria',this)">Tesoreria</button>
+  <button class="area-btn" onclick="cambiarArea('RRHH',this)">RRHH</button>
+  <button class="area-btn" onclick="cambiarArea('Servicios Generales',this)">Servicios Generales</button>
+  <button class="area-btn" onclick="cambiarArea('Legal',this)">Legal</button>
 </div>
 
 <div class="grid">
@@ -961,7 +996,49 @@ const STORAGE_KEY = "fenix_data";
 function cargarDatos(){
   const guardado = localStorage.getItem(STORAGE_KEY);
   if (guardado) {
-    Object.assign(DATA, JSON.parse(guardado));
+    const datosViejos = JSON.parse(guardado);
+    
+    // Migrar datos de nombres antiguos a nuevos
+    if (datosViejos.Finanzas) {
+      datosViejos["Cuentas por pagar"] = datosViejos.Finanzas;
+      delete datosViejos.Finanzas;
+    }
+    if (datosViejos.Fiscal) {
+      datosViejos.Tesoreria = datosViejos.Fiscal;
+      delete datosViejos.Fiscal;
+    }
+    if (datosViejos.Obra) {
+      datosViejos.RRHH = datosViejos.Obra;
+      delete datosViejos.Obra;
+    }
+    if (datosViejos.RH) {
+      datosViejos["Servicios Generales"] = datosViejos.RH;
+      delete datosViejos.RH;
+    }
+    
+    // Actualizar nombres en KPIs de Global
+    if (datosViejos.Global && datosViejos.Global.kpi) {
+      datosViejos.Global.kpi = datosViejos.Global.kpi.map(kpi => {
+        if (kpi[0] === "Finanzas") kpi[0] = "Cuentas por pagar";
+        if (kpi[0] === "Fiscal") kpi[0] = "Tesoreria";
+        if (kpi[0] === "Obra") kpi[0] = "RRHH";
+        if (kpi[0] === "RH") kpi[0] = "Servicios Generales";
+        return kpi;
+      });
+      
+      // Agregar Legal si no existe
+      const tieneLegal = datosViejos.Global.kpi.some(kpi => kpi[0] === "Legal");
+      if (!tieneLegal) {
+        datosViejos.Global.kpi.push(["Legal", 45, 35]);
+      }
+    }
+    
+    // Agregar área Legal si no existe
+    if (!datosViejos.Legal) {
+      datosViejos.Legal = DATA.Legal;
+    }
+    
+    Object.assign(DATA, datosViejos);
   }
 }
 
@@ -979,10 +1056,11 @@ const DATA = {
     avance:62,
     kpi:[
       ["Procura",70,55],
-      ["Finanzas",65,48],
-      ["Fiscal",60,40],
-      ["Obra",55,50],
-      ["RH",50,45]
+      ["Cuentas por pagar",65,48],
+      ["Tesoreria",60,40],
+      ["RRHH",55,50],
+      ["Servicios Generales",50,45],
+      ["Legal",45,35]
     ],
     riesgos:[
       ["Retrasos proveedores","Medio","Seguimiento semanal","Procura"]
@@ -1000,47 +1078,58 @@ const DATA = {
     ]
   },
 
-  Finanzas:{
+  "Cuentas por pagar":{
     avance:48,
     actividades:[
-      ["ON","Conciliación presupuestal","Finanzas"],
-      ["NEXT","Ajuste forecast","Finanzas"]
+      ["ON","Conciliación presupuestal","Cuentas por pagar"],
+      ["NEXT","Ajuste forecast","Cuentas por pagar"]
     ],
     riesgos:[
-      ["Variación presupuestal","Alto","Sesión ejecutiva","Finanzas"]
+      ["Variación presupuestal","Alto","Sesión ejecutiva","Cuentas por pagar"]
     ]
   },
 
-  Fiscal:{
+  Tesoreria:{
     avance:40,
     actividades:[
-      ["ON","Revisión obligaciones","Fiscal"],
-      ["NEXT","Corrección dictámenes","Fiscal"]
+      ["ON","Revisión obligaciones","Tesoreria"],
+      ["NEXT","Corrección dictámenes","Tesoreria"]
     ],
     riesgos:[
-      ["Incumplimiento normativo","Alto","Plan de regularización","Fiscal"]
+      ["Incumplimiento normativo","Alto","Plan de regularización","Tesoreria"]
     ]
   },
 
-  Obra:{
+  RRHH:{
     avance:50,
     actividades:[
-      ["ON","Validación técnica","Obra"],
-      ["NEXT","Aprobación planos","Obra"]
+      ["ON","Validación técnica","RRHH"],
+      ["NEXT","Aprobación planos","RRHH"]
     ],
     riesgos:[
-      ["Retrasos técnicos","Medio","Ajuste de cronograma","Obra"]
+      ["Retrasos técnicos","Medio","Ajuste de cronograma","RRHH"]
     ]
   },
 
-  RH:{
+  "Servicios Generales":{
     avance:45,
     actividades:[
-      ["ON","Capacitación","RH"],
-      ["NEXT","Gestión del cambio","RH"]
+      ["ON","Capacitación","Servicios Generales"],
+      ["NEXT","Gestión del cambio","Servicios Generales"]
     ],
     riesgos:[
-      ["Resistencia al cambio","Bajo","Comunicación interna","RH"]
+      ["Resistencia al cambio","Bajo","Comunicación interna","Servicios Generales"]
+    ]
+  },
+
+  Legal:{
+    avance:35,
+    actividades:[
+      ["ON","Revisión de contratos","Legal"],
+      ["NEXT","Actualización normativa","Legal"]
+    ],
+    riesgos:[
+      ["Incumplimiento legal","Alto","Asesoría externa","Legal"]
     ]
   }
 };
@@ -1079,10 +1168,10 @@ function render(){
             <span class="kpi-diff-inline ${diffClass}">${diffText}</span>
           </div>
           <div class="kpi-bars-wrapper">
-            <div class="kpi-bar-horizontal planned" style="width:${r[1]}%">
+            <div class="kpi-bar-horizontal planned" style="width:${r[1]}%" data-value="${r[1]}%" title="Planeado: ${r[1]}%">
               <span class="kpi-percent">${r[1]}%</span>
             </div>
-            <div class="kpi-bar-horizontal actual ${cls}" style="width:${r[2]}%">
+            <div class="kpi-bar-horizontal actual ${cls}" style="width:${r[2]}%" data-value="${r[2]}%" title="Real: ${r[2]}%">
               <span class="kpi-percent">${r[2]}%</span>
             </div>
           </div>
@@ -1179,7 +1268,7 @@ function cerrarEditor(){
 }
 
 function renderizarEditor(){
-  const areas=["Global","Procura","Finanzas","Fiscal","Obra","RH"];
+  const areas=["Global","Procura","Cuentas por pagar","Tesoreria","RRHH","Servicios Generales","Legal"];
   let html=`<div class="editor-row">
     <label>Seleccionar Área:</label>
     <select id="area-select" onchange="actualizarFormulario()" style="width:100%;padding:8px 10px;border:1px solid #D1D5DB;border-radius:6px;cursor:pointer;">`;
@@ -1440,6 +1529,15 @@ function eliminarRiesgo(idx){
 }
 
 updateClock();
+
+// 🔄 LIMPIEZA ÚNICA - Forzar actualización de datos con Legal
+const VERSION_KEY = "fenix_version";
+const VERSION_ACTUAL = "2.0"; // Incrementa esto cada vez que agregues áreas nuevas
+if (localStorage.getItem(VERSION_KEY) !== VERSION_ACTUAL) {
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.setItem(VERSION_KEY, VERSION_ACTUAL);
+}
+
 cargarDatos();   // 👈 primero carga lo guardado
 
 // 🔑 SINCRONIZAR EDITOR CON DATOS GUARDADOS
