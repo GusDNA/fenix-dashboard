@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>FÉNIX – Reingeniería de Procesos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#4E628F;
+  --green:#22C55E;
+  --yellow:#FACC15;
+  --red:#EF4444;
+  --gray:#D1D5DB;
+  --bg:#F6F8FC;
+  --card:#FFFFFF;
+}
+*{box-sizing:border-box;font-family:Segoe UI, Arial, sans-serif;}
+body{margin:0;background:var(--bg);}
+.container{max-width:1400px;margin:auto;padding:30px;}
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:26px;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  border:1px solid rgba(78,98,143,0.05);
+}
+
+.card:hover{
+  box-shadow:0 8px 24px rgba(0,0,0,0.1);
+}
+
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.header-left{display:flex;align-items:center;gap:16px;}
+.header-left img{height:46px;}
+.header-left h1{margin:0;font-size:30px;color:var(--blue);}
+.header-left p{margin:4px 0 0;color:#6b7280;}
+
+.clock{
+  background:var(--blue);color:white;padding:10px 16px;
+  border-radius:14px;font-size:13px;line-height:1.2;
+}
+.clock .title{font-weight:700;}
+.clock .time{opacity:.9;}
+
+.status{
+  background:white;padding:16px 24px;border-radius:16px;
+  display:flex;gap:30px;font-size:16px;font-weight:600;
+  margin-bottom:25px;
+}
+
+.areas{display:flex;gap:10px;margin-bottom:25px;}
+.area-btn{
+  background:var(--blue);color:white;border:none;
+  padding:10px 18px;border-radius:10px;
+  font-weight:600;cursor:pointer;
+}
+.area-btn.active{background:#F28C38;}
+
+.grid{display:grid;grid-template-columns:2fr 3fr;gap:25px;}
+
+.donut-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:320px;
+  perspective:1000px;
+}
+
+.donut-wrap:hover .donut{
+  transform:scale(1.08) rotateZ(5deg);
+  filter:drop-shadow(0 12px 30px rgba(0,0,0,0.15));
+}
+
+.donut{
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,0.08);
+}
+
+.donut::before{
+  content:'';
+  width:170px;
+  height:170px;
+  background:white;
+  border-radius:50%;
+  position:absolute;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.donut span{
+  position:relative;
+  font-size:38px;
+  font-weight:800;
+  color:var(--blue);
+  transition:all 0.4s ease;
+  z-index:1;
+  letter-spacing:-1px;
+}
+
+.donut-wrap:hover .donut span{
+  transform:scale(1.1);
+  text-shadow:0 4px 12px rgba(78,98,143,0.2);
+}
+
+.table{width:100%;border-collapse:collapse;}
+.table th{font-size:13px;color:#6b7280;text-align:left;padding-bottom:8px;}
+.table td{padding:12px 8px;border-bottom:1px solid #E5E7EB;}
+
+.semaforo{
+  width:12px;height:12px;border-radius:50%;
+  display:inline-block;margin-right:6px;
+}
+.sf-alto{background:var(--red);}
+.sf-medio{background:var(--yellow);}
+.sf-bajo{background:var(--green);}
+
+.badge{
+  padding:6px 14px;border-radius:999px;
+  font-size:12px;font-weight:700;
+}
+.on{background:#DCFCE7;color:#166534;}
+.next{background:#E5E7EB;color:#374151;}
+
+/* ================= KPI DASHBOARD ================= */
+.kpi-dashboard{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;
+}
+
+.kpi-card{
+  background:linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
+  border-radius:16px;
+  padding:20px;
+  border:1px solid rgba(78,98,143,0.08);
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  animation:slideInUp 0.5s ease-out backwards;
+}
+
+.kpi-card:nth-child(1){animation-delay:0.1s;}
+.kpi-card:nth-child(2){animation-delay:0.2s;}
+.kpi-card:nth-child(3){animation-delay:0.3s;}
+.kpi-card:nth-child(4){animation-delay:0.4s;}
+.kpi-card:nth-child(5){animation-delay:0.5s;}
+
+@keyframes slideInUp{
+  from{
+    opacity:0;
+    transform:translateY(15px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.kpi-card:hover{
+  box-shadow:0 8px 24px rgba(0,0,0,0.12);
+  transform:translateY(-4px);
+}
+
+.kpi-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+}
+
+.kpi-title{
+  margin:0;
+  font-size:16px;
+  font-weight:700;
+  color:#1F2937;
+  letter-spacing:-0.01em;
+}
+
+.kpi-status{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  display:inline-block;
+  animation:pulse 2s infinite;
+}
+
+.kpi-status.sf-alto{background:#EF4444;box-shadow:0 0 8px rgba(239,68,68,0.5);}
+.kpi-status.sf-medio{background:#FACC15;box-shadow:0 0 8px rgba(250,204,21,0.5);}
+.kpi-status.sf-bajo{background:#22C55E;box-shadow:0 0 8px rgba(34,197,94,0.5);}
+
+@keyframes pulse{
+  0%,100%{opacity:1;}
+  50%{opacity:0.6;}
+}
+
+.kpi-bars{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-bottom:14px;
+}
+
+.kpi-bar-group{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.kpi-bar-group label{
+  font-size:12px;
+  font-weight:600;
+  color:#6B7280;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+
+.kpi-bar-container{
+  background:#E5E7EB;
+  border-radius:8px;
+  height:28px;
+  overflow:hidden;
+  position:relative;
+}
+
+.kpi-bar{
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  padding-right:8px;
+  border-radius:8px;
+  transition:all 0.4s ease;
+  font-weight:700;
+  font-size:12px;
+  color:white;
+  min-width:40px;
+}
+
+.kpi-bar.planned{
+  background:linear-gradient(90deg, #4E628F 0%, #5E72A0 100%);
+}
+
+.kpi-bar.actual{
+  background:linear-gradient(90deg, #3B82F6 0%, #2563EB 100%);
+}
+
+.kpi-value{
+  white-space:nowrap;
+}
+
+.kpi-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding-top:12px;
+  border-top:1px solid rgba(0,0,0,0.05);
+}
+
+.kpi-diff{
+  font-weight:700;
+  font-size:13px;
+  padding:4px 10px;
+  border-radius:8px;
+}
+
+.kpi-diff.negative{
+  color:#EF4444;
+  background:#FEE2E2;
+}
+
+.kpi-diff.positive{
+  color:#22C55E;
+  background:#DCFCE7;
+}
+
+/* ================= KPI BARRAS HORIZONTALES ================= */
+.kpi-bars-horizontal{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+.kpi-row{
+  display:grid;
+  grid-template-columns:120px 1fr 85px;
+  gap:12px;
+  align-items:center;
+  animation:fadeInRight 0.5s ease-out backwards;
+}
+
+.kpi-row:nth-child(1){animation-delay:0.1s;}
+.kpi-row:nth-child(2){animation-delay:0.2s;}
+.kpi-row:nth-child(3){animation-delay:0.3s;}
+.kpi-row:nth-child(4){animation-delay:0.4s;}
+.kpi-row:nth-child(5){animation-delay:0.5s;}
+
+@keyframes fadeInRight{
+  from{
+    opacity:0;
+    transform:translateX(20px);
+  }
+  to{
+    opacity:1;
+    transform:translateX(0);
+  }
+}
+
+.kpi-label{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  align-items:flex-start;
+}
+
+.kpi-label h5{
+  margin:0;
+  font-size:14px;
+  font-weight:700;
+  color:#1F2937;
+  letter-spacing:-0.01em;
+}
+
+.kpi-diff-inline{
+  font-size:11px;
+  font-weight:700;
+  padding:2px 6px;
+  border-radius:4px;
+}
+
+.kpi-diff-inline.negative{
+  color:#EF4444;
+  background:#FEE2E2;
+}
+
+.kpi-diff-inline.positive{
+  color:#22C55E;
+  background:#DCFCE7;
+}
+
+/* ================= ICONO DE ESTADO ================= */
+.kpi-status-icon{
+  font-size:24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  border-radius:6px;
+  transition:all 0.3s ease;
+  cursor:pointer;
+}
+
+.kpi-status-icon.sf-alto{
+  background:rgba(239,68,68,0.1);
+  animation:pulse-warning 2s infinite;
+}
+
+.kpi-status-icon.sf-medio{
+  background:rgba(250,204,21,0.1);
+  animation:pulse-warning 2s infinite;
+}
+
+.kpi-status-icon.sf-bajo{
+  background:rgba(34,197,94,0.1);
+}
+
+.kpi-status-icon:hover{
+  transform:scale(1.15);
+  background:rgba(0,0,0,0.05);
+}
+
+@keyframes pulse-warning{
+  0%,100%{opacity:1;}
+  50%{opacity:0.6;}
+}
+
+.kpi-status-inline{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  display:inline-block;
+  animation:pulse 2s infinite;
+}
+
+.kpi-status-inline.sf-alto{background:#EF4444;box-shadow:0 0 8px rgba(239,68,68,0.5);}
+.kpi-status-inline.sf-medio{background:#FACC15;box-shadow:0 0 8px rgba(250,204,21,0.5);}
+.kpi-status-inline.sf-bajo{background:#22C55E;box-shadow:0 0 8px rgba(34,197,94,0.5);}
+
+.kpi-bars-wrapper{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  position:relative;
+}
+
+.kpi-bar-horizontal{
+  height:22px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  padding-right:10px;
+  transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+  min-width:30px;
+  font-weight:700;
+  font-size:11px;
+  color:white;
+  position:relative;
+}
+
+.kpi-bar-horizontal.planned{
+  background:linear-gradient(90deg, #4E628F 0%, #5E72A0 100%);
+  box-shadow:0 2px 8px rgba(78,98,143,0.15);
+}
+
+.kpi-bar-horizontal.actual{
+  background:linear-gradient(90deg, #3B82F6 0%, #2563EB 100%);
+  box-shadow:0 2px 8px rgba(59,130,246,0.2);
+}
+
+.kpi-bar-horizontal.actual.sf-alto{
+  background:linear-gradient(90deg, #EF4444 0%, #DC2626 100%);
+  box-shadow:0 2px 8px rgba(239,68,68,0.25);
+}
+
+.kpi-bar-horizontal.actual.sf-medio{
+  background:linear-gradient(90deg, #FACC15 0%, #EAB308 100%);
+  box-shadow:0 2px 8px rgba(250,204,21,0.25);
+}
+
+.kpi-bar-horizontal.actual.sf-bajo{
+  background:linear-gradient(90deg, #22C55E 0%, #16A34A 100%);
+  box-shadow:0 2px 8px rgba(34,197,94,0.25);
+}
+
+.kpi-bar-horizontal:hover{
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
+}
+
+.kpi-percent{
+  white-space:nowrap;
+  letter-spacing:0.5px;
+}
+
+.kpi-status-inline{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  display:inline-block;
+  animation:pulse 2s infinite;
+}
+
+.kpi-status-inline.sf-alto{background:#EF4444;box-shadow:0 0 8px rgba(239,68,68,0.5);}
+.kpi-status-inline.sf-medio{background:#FACC15;box-shadow:0 0 8px rgba(250,204,21,0.5);}
+.kpi-status-inline.sf-bajo{background:#22C55E;box-shadow:0 0 8px rgba(34,197,94,0.5);}
+
+/* ================= ACTIVIDADES MODERNO ================= */
+.activities-container{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.activity-item{
+  display:flex;
+  gap:16px;
+  padding:16px;
+  background:linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
+  border-radius:12px;
+  border-left:4px solid #D1D5DB;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  animation:slideInLeft 0.5s ease-out backwards;
+}
+
+.activity-item:nth-child(1){animation-delay:0.1s;}
+.activity-item:nth-child(2){animation-delay:0.2s;}
+
+@keyframes slideInLeft{
+  from{
+    opacity:0;
+    transform:translateX(-15px);
+  }
+  to{
+    opacity:1;
+    transform:translateX(0);
+  }
+}
+
+.activity-item.active{
+  border-left-color:var(--green);
+  background:linear-gradient(135deg, #DCFCE7 0%, #F0FDF4 100%);
+}
+
+.activity-item:hover{
+  box-shadow:0 6px 16px rgba(0,0,0,0.1);
+  transform:translateX(4px);
+}
+
+.activity-indicator{
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding-top:2px;
+}
+
+.activity-dot{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:#D1D5DB;
+  transition:all 0.3s ease;
+}
+
+.activity-item.active .activity-dot{
+  width:16px;
+  height:16px;
+  background:var(--green);
+  box-shadow:0 0 10px rgba(34,197,94,0.4);
+}
+
+.activity-content{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.activity-header{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.activity-badge{
+  padding:4px 10px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+
+.activity-badge.on{
+  background:#DCFCE7;
+  color:#166534;
+}
+
+.activity-badge.next{
+  background:#E5E7EB;
+  color:#374151;
+}
+
+.activity-responsible{
+  font-size:12px;
+  color:#6B7280;
+  font-weight:600;
+  padding:2px 8px;
+  background:rgba(0,0,0,0.03);
+  border-radius:4px;
+}
+
+.activity-title{
+  margin:0;
+  font-size:14px;
+  font-weight:600;
+  color:#1F2937;
+  line-height:1.4;
+}
+
+/* EDITOR DESPLEGABLE */
+.toggle-edit{
+  position:fixed;bottom:30px;right:30px;
+  background:var(--blue);color:white;border:none;
+  padding:15px 20px;border-radius:50px;cursor:pointer;
+  font-weight:600;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.15);
+  z-index:999;transition:all 0.3s;
+}
+.toggle-edit:hover{background:#3a4863;transform:scale(1.05);}
+
+.editor-panel{
+  position:fixed;bottom:90px;right:30px;
+  background:white;border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.2);
+  width:450px;max-height:600px;overflow-y:auto;
+  padding:20px;z-index:998;
+  display:none;border:2px solid var(--blue);
+}
+.editor-panel.show{display:block;}
+.editor-panel h4{margin-top:0;color:var(--blue);border-bottom:2px solid var(--blue);padding-bottom:10px;}
+.editor-row{margin-bottom:12px;}
+.editor-row label{display:block;font-size:12px;color:#6b7280;font-weight:600;margin-bottom:4px;}
+.editor-row input{
+  width:100%;padding:8px 10px;border:1px solid #D1D5DB;
+  border-radius:6px;font-size:13px;
+}
+.editor-row input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(78,98,143,0.1);}
+.editor-buttons{display:flex;gap:8px;margin-top:15px;padding-top:15px;border-top:1px solid #E5E7EB;}
+.editor-buttons button{flex:1;padding:8px;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;}
+.btn-save{background:var(--green);color:white;}
+.btn-save:hover{background:#16a34a;}
+.btn-cancel{background:#E5E7EB;color:#374151;}
+.btn-cancel:hover{background:#D1D5DB;}
+.edit-section{margin-top:15px;padding-top:15px;border-top:1px solid #E5E7EB;}
+.edit-section h5{margin:0 0 10px;font-size:13px;color:var(--blue);}
+.edit-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;}
+.edit-table th{background:#F3F4F6;padding:6px;text-align:left;font-size:11px;}
+.edit-table td{padding:4px;}
+.edit-table input,.edit-table select{width:100%;padding:4px 6px;border:1px solid #D1D5DB;border-radius:4px;font-size:11px;}
+.btn-add,.btn-del{padding:4px 10px;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;margin-top:5px;}
+.btn-add{background:var(--green);color:white;}
+.btn-add:hover{background:#16a34a;}
+.btn-del{background:var(--red);color:white;}
+.btn-del:hover{background:#dc2626;}
+
+/* ================= TIMELINE GLOBAL ================= */
+
+.timeline-card{
+  position:relative;
+  background:linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
+  border-radius:20px;
+  padding:50px 40px 40px;
+  margin-bottom:30px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.08);
+  border:1px solid rgba(78,98,143,0.1);
+}
+
+/* contenedor del timeline */
+#timeline-global{
+  position:relative;
+  padding:20px 0;
+}
+
+/* línea base con gradiente y animación */
+.timeline-line{
+  position:absolute;
+  top:70px;
+  left:60px;
+  right:60px;
+  height:8px;
+  background:linear-gradient(90deg, #E5E7EB 0%, #D1D5DB 50%, #E5E7EB 100%);
+  border-radius:10px;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.06);
+}
+
+/* línea de progreso */
+.timeline-line::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  height:100%;
+  width:47.5%;
+  background:linear-gradient(90deg, var(--green) 0%, var(--yellow) 100%);
+  border-radius:10px;
+  animation:progressGrow 2s ease-out;
+  box-shadow:0 0 12px rgba(34,197,94,0.4);
+}
+
+@keyframes progressGrow{
+  from{width:0;}
+  to{width:47.5%;}
+}
+
+/* cada hito con animación */
+#timeline-global .timeline-item{
+  position:relative;
+  width:20%;
+  text-align:center;
+  float:left;
+  animation:fadeInUp 0.6s ease-out backwards;
+}
+
+#timeline-global .timeline-item:nth-child(1){animation-delay:0.1s;}
+#timeline-global .timeline-item:nth-child(2){animation-delay:0.2s;}
+#timeline-global .timeline-item:nth-child(3){animation-delay:0.3s;}
+#timeline-global .timeline-item:nth-child(4){animation-delay:0.4s;}
+#timeline-global .timeline-item:nth-child(5){animation-delay:0.5s;}
+
+@keyframes fadeInUp{
+  from{
+    opacity:0;
+    transform:translateY(20px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+/* limpiar floats */
+#timeline-global::after{
+  content:"";
+  display:block;
+  clear:both;
+}
+
+/* círculos modernos con efectos */
+.timeline-circle{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  margin:0 auto;
+  position:relative;
+  z-index:2;
+  background:#FFFFFF;
+  border:4px solid #E5E7EB;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  cursor:pointer;
+}
+
+.timeline-circle:hover{
+  transform:scale(1.15);
+  box-shadow:0 8px 20px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* punto interno con gradiente */
+.timeline-circle::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  transform:translate(-50%, -50%);
+  transition:all 0.3s ease;
+}
+
+.timeline-circle:hover::after{
+  width:28px;
+  height:28px;
+}
+
+/* textos mejorados */
+.timeline-label{
+  margin-top:18px;
+  font-size:13px;
+  line-height:1.4;
+  color:#6B7280;
+  transition:all 0.3s ease;
+}
+
+.timeline-item:hover .timeline-label{
+  color:#374151;
+  transform:translateY(-2px);
+}
+
+.timeline-label strong{
+  display:block;
+  font-size:16px;
+  font-weight:700;
+  color:#1F2937;
+  margin-bottom:6px;
+  letter-spacing:-0.01em;
+}
+
+.timeline-label span{
+  display:none;
+}
+
+/* colores con gradientes y sombras */
+.timeline-circle.green{
+  border-color:var(--green);
+  box-shadow:0 4px 12px rgba(34,197,94,0.25), 0 2px 4px rgba(34,197,94,0.15);
+}
+.timeline-circle.green::after{
+  background:linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+}
+
+.timeline-circle.yellow{
+  border-color:var(--yellow);
+  box-shadow:0 4px 12px rgba(250,204,21,0.25), 0 2px 4px rgba(250,204,21,0.15);
+}
+.timeline-circle.yellow::after{
+  background:linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
+}
+
+.timeline-circle.red{
+  border-color:var(--red);
+  box-shadow:0 4px 12px rgba(239,68,68,0.25), 0 2px 4px rgba(239,68,68,0.15);
+}
+.timeline-circle.red::after{
+  background:linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+}
+
+.timeline-circle.gray{
+  border-color:#D1D5DB;
+  box-shadow:0 4px 12px rgba(156,163,175,0.15), 0 2px 4px rgba(156,163,175,0.1);
+}
+.timeline-circle.gray::after{
+  background:linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%);
+}
+
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <img src="./dna.png">
+    <div>
+      <h1>FÉNIX – Reingeniería de Procesos</h1>
+      <p>Seguimiento ejecutivo</p>
+    </div>
+  </div>
+  <div class="clock">
+    <div class="title">⏱ Última consulta</div>
+    <div class="time" id="clock-time"></div>
+  </div>
+</div>
+
+<div class="status" id="status"></div>
+<!-- ================= TIMELINE GLOBAL ================= -->
+<div id="timeline-global" class="timeline-card" style="display:none;">
+  <div class="timeline-line"></div>
+
+  <div class="timeline-item">
+    <div class="timeline-circle green"></div>
+    <div class="timeline-label">
+      <strong>Gobernanza</strong>
+      <span>100%</span>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-circle green"></div>
+    <div class="timeline-label">
+      <strong>Diagnóstico</strong>
+      <span>80%</span>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-circle yellow"></div>
+    <div class="timeline-label">
+      <strong>Diseño</strong>
+      <span>55%</span>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-circle gray"></div>
+    <div class="timeline-label">
+      <strong>Sistematización</strong>
+      <span>0%</span>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-circle gray"></div>
+    <div class="timeline-label">
+      <strong>Medición</strong>
+      <span>0%</span>
+    </div>
+  </div>
+</div>
+<!-- ================= FIN TIMELINE ================= -->
+
+<!-- ================= TIMELINE GLOBAL ================= -->
+<div id="timeline-global" class="timeline-card" style="display:none;">
+  <div class="timeline-line"></div>
+
+  <div class="timeline-item">
+    <div class="timeline-circle green"></div>
+    <div class="timeline-label">
+      <strong>Inicio</strong>
+      <span>100%</span>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-circle yellow"></div>
+    <div class="timeline-label">
+      <strong>Diagnóstico</strong>
+      <span>75%</span>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-circle yellow"></div>
+    <div class="timeline-label">
+      <strong>Diseño</strong>
+      <span>50%</span>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-circle red"></div>
+    <div class="timeline-label">
+      <strong>Implementación</strong>
+      <span>20%</span>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-circle gray"></div>
+    <div class="timeline-label">
+      <strong>Cierre</strong>
+      <span>0%</span>
+    </div>
+  </div>
+</div>
+<!-- ================= FIN TIMELINE ================= -->
+
+<div class="areas">
+  <button class="area-btn active" onclick="cambiarArea('Global',this)">Global</button>
+  <button class="area-btn" onclick="cambiarArea('Procura',this)">Procura</button>
+  <button class="area-btn" onclick="cambiarArea('Finanzas',this)">Finanzas</button>
+  <button class="area-btn" onclick="cambiarArea('Fiscal',this)">Fiscal</button>
+  <button class="area-btn" onclick="cambiarArea('Obra',this)">Obra</button>
+  <button class="area-btn" onclick="cambiarArea('RH',this)">RH</button>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3 id="titulo-dona"></h3>
+    <div class="donut-wrap">
+      <div class="donut"><span id="donut-val"></span></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3 id="titulo-derecha"></h3>
+    <div id="contenido-derecha"></div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:30px">
+  <h3>Riesgos para el cumplimiento</h3>
+  <table class="table" id="tabla-riesgos"></table>
+</div>
+
+<!-- EDITOR DESPLEGABLE -->
+<div class="editor-panel" id="editor-panel">
+  <h4>✏️ Editar datos en tiempo real</h4>
+  <div id="editor-content"></div>
+  <div class="editor-buttons">
+    <button class="btn-save" onclick="guardarCambios()">Guardar</button>
+    <button class="btn-cancel" onclick="cerrarEditor()">Cerrar</button>
+  </div>
+</div>
+
+<button class="toggle-edit" onclick="abrirEditor()">⚙️ Editar Datos</button>
+
+</div>
+
+<script>
+const STORAGE_KEY = "fenix_data";
+
+function cargarDatos(){
+  const guardado = localStorage.getItem(STORAGE_KEY);
+  if (guardado) {
+    Object.assign(DATA, JSON.parse(guardado));
+  }
+}
+
+function guardarDatos(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA));
+}
+
+/* ============================================================
+   ============ INICIO DATOS EDITABLES (TIPO EXCEL) ============
+   ============================================================ */
+
+const DATA = {
+  Global:{
+    estatus:{ tiempo:"6%", avance:"62%", estado:"Adelantado" },
+    avance:62,
+    kpi:[
+      ["Procura",70,55],
+      ["Finanzas",65,48],
+      ["Fiscal",60,40],
+      ["Obra",55,50],
+      ["RH",50,45]
+    ],
+    riesgos:[
+      ["Retrasos proveedores","Medio","Seguimiento semanal","Procura"]
+    ]
+  },
+
+  Procura:{
+    avance:55,
+    actividades:[
+      ["ON","Catálogo proveedores","Procura"],
+      ["NEXT","Evaluación contratos","Procura"]
+    ],
+    riesgos:[
+      ["Retrasos proveedores","Medio","Seguimiento semanal","Procura"]
+    ]
+  },
+
+  Finanzas:{
+    avance:48,
+    actividades:[
+      ["ON","Conciliación presupuestal","Finanzas"],
+      ["NEXT","Ajuste forecast","Finanzas"]
+    ],
+    riesgos:[
+      ["Variación presupuestal","Alto","Sesión ejecutiva","Finanzas"]
+    ]
+  },
+
+  Fiscal:{
+    avance:40,
+    actividades:[
+      ["ON","Revisión obligaciones","Fiscal"],
+      ["NEXT","Corrección dictámenes","Fiscal"]
+    ],
+    riesgos:[
+      ["Incumplimiento normativo","Alto","Plan de regularización","Fiscal"]
+    ]
+  },
+
+  Obra:{
+    avance:50,
+    actividades:[
+      ["ON","Validación técnica","Obra"],
+      ["NEXT","Aprobación planos","Obra"]
+    ],
+    riesgos:[
+      ["Retrasos técnicos","Medio","Ajuste de cronograma","Obra"]
+    ]
+  },
+
+  RH:{
+    avance:45,
+    actividades:[
+      ["ON","Capacitación","RH"],
+      ["NEXT","Gestión del cambio","RH"]
+    ],
+    riesgos:[
+      ["Resistencia al cambio","Bajo","Comunicación interna","RH"]
+    ]
+  }
+};
+
+/* ============================================================
+   ============== FIN DATOS EDITABLES =========================
+   ============================================================ */
+
+let areaActual="Global";
+let areaEditorActual = "Global";
+
+function render(){
+  if(areaActual==="Global"){
+    document.getElementById("status").innerHTML=`
+      <div>⏱ Tiempo transcurrido: <b>${DATA.Global.estatus.tiempo}</b></div>
+      <div>📊 Avance real: <b>${DATA.Global.estatus.avance}</b></div>
+      <div><span class="semaforo sf-bajo"></span>${DATA.Global.estatus.estado}</div>
+    `;
+    document.getElementById("titulo-dona").innerText="Avance global del proyecto";
+    document.getElementById("donut-val").innerText=DATA.Global.avance+"%";
+    document.querySelector(".donut").style.background=
+      `conic-gradient(var(--blue) 0% ${DATA.Global.avance}%, var(--gray) ${DATA.Global.avance}% 100%)`;
+
+    let html=`<div class="kpi-bars-horizontal">`;
+    DATA.Global.kpi.forEach(r=>{
+      const d=Math.abs(r[1]-r[2]);
+      const cls=d>10?"sf-alto":d>5?"sf-medio":"sf-bajo";
+      const icon=d>10?"⚠️":d>5?"⚠️":"✓";
+      const diff=r[2]-r[1];
+      const diffText=diff>0?`+${diff}%`:`${diff}%`;
+      const diffClass=diff>0?"positive":"negative";
+      html+=`
+        <div class="kpi-row">
+          <div class="kpi-label">
+            <h5>${r[0]}</h5>
+            <span class="kpi-diff-inline ${diffClass}">${diffText}</span>
+          </div>
+          <div class="kpi-bars-wrapper">
+            <div class="kpi-bar-horizontal planned" style="width:${r[1]}%">
+              <span class="kpi-percent">${r[1]}%</span>
+            </div>
+            <div class="kpi-bar-horizontal actual ${cls}" style="width:${r[2]}%">
+              <span class="kpi-percent">${r[2]}%</span>
+            </div>
+          </div>
+          <div class="kpi-status-icon ${cls}">
+            ${icon}
+          </div>
+        </div>
+      `;
+    });
+    html+=`</div>`;
+    document.getElementById("titulo-derecha").innerText="Desempeño por área vs planeación";
+    document.getElementById("contenido-derecha").innerHTML=html;
+
+  } else {
+    const d=DATA[areaActual];
+    document.getElementById("status").innerHTML="";
+    document.getElementById("titulo-dona").innerText="Estatus de FÉNIX en el proceso";
+    document.getElementById("donut-val").innerText=d.avance+"%";
+    document.querySelector(".donut").style.background=
+      `conic-gradient(var(--blue) 0% ${d.avance}%, var(--gray) ${d.avance}% 100%)`;
+
+    let html=`<div class="activities-container">`;
+    d.actividades.forEach((a,idx)=>{
+      const isActive=a[0]==="ON";
+      html+=`
+        <div class="activity-item ${isActive?"active":""}">
+          <div class="activity-indicator">
+            <div class="activity-dot"></div>
+          </div>
+          <div class="activity-content">
+            <div class="activity-header">
+              <span class="activity-badge ${a[0].toLowerCase()}">${a[0]}</span>
+              <span class="activity-responsible">${a[2]}</span>
+            </div>
+            <p class="activity-title">${a[1]}</p>
+          </div>
+        </div>
+      `;
+    });
+    html+=`</div>`;
+    document.getElementById("titulo-derecha").innerText="Actividades del área";
+    document.getElementById("contenido-derecha").innerHTML=html;
+  }
+
+  renderRiesgos();
+// TIMELINE SOLO EN GLOBAL
+const timeline = document.getElementById("timeline-global");
+if(timeline){
+  timeline.style.display = (areaActual === "Global") ? "block" : "none";
+}
+
+}
+
+function renderRiesgos(){
+  const t=document.getElementById("tabla-riesgos");
+  t.innerHTML="<tr><th>Riesgo</th><th>Semáforo</th><th>Plan</th><th>Resp.</th></tr>";
+  const r=areaActual==="Global"?DATA.Global.riesgos:DATA[areaActual].riesgos;
+  r.forEach(x=>{
+    const c=x[1]==="Alto"?"sf-alto":x[1]==="Medio"?"sf-medio":"sf-bajo";
+    t.innerHTML+=`<tr>
+      <td>${x[0]}</td>
+      <td><span class="semaforo ${c}"></span>${x[1].toLowerCase()}</td>
+      <td>${x[2]}</td><td>${x[3]}</td>
+    </tr>`;
+  });
+}
+
+function cambiarArea(a,btn){
+  areaActual=a;
+  document.querySelectorAll(".area-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+
+function updateClock(){
+  document.getElementById("clock-time").innerText=new Date().toLocaleString();
+}
+
+/* ============================================================
+   =========== EDITOR EN TIEMPO REAL (DESPLEGABLE) ============
+   ============================================================ */
+
+let datosEditables={...JSON.parse(JSON.stringify(DATA))};
+
+function abrirEditor(){
+  areaEditorActual = areaActual; // sincroniza editor con vista
+  const panel = document.getElementById("editor-panel");
+  panel.classList.add("show");
+  renderizarEditor();
+}
+
+function cerrarEditor(){
+  document.getElementById("editor-panel").classList.remove("show");
+}
+
+function renderizarEditor(){
+  const areas=["Global","Procura","Finanzas","Fiscal","Obra","RH"];
+  let html=`<div class="editor-row">
+    <label>Seleccionar Área:</label>
+    <select id="area-select" onchange="actualizarFormulario()" style="width:100%;padding:8px 10px;border:1px solid #D1D5DB;border-radius:6px;cursor:pointer;">`;
+  
+ areas.forEach(a=>{
+  html += `<option value="${a}" ${a===areaEditorActual?"selected":""}>${a}</option>`;
+});
+
+  html+=`</select></div>`;
+
+  const area=document.getElementById("area-select")?.value || "Global";
+  const datos=datosEditables[area];
+
+  if(area==="Global"){
+    html+=`
+      <div class="editor-row">
+        <label>Avance Global (%):</label>
+        <input type="number" min="0" max="100" id="avance" value="${datos.avance}">
+      </div>
+      <div class="editor-row">
+        <label>Tiempo Transcurrido:</label>
+        <input type="text" id="tiempo" value="${datos.estatus.tiempo}">
+      </div>
+      <div class="editor-row">
+        <label>Avance Real:</label>
+        <input type="text" id="avanceReal" value="${datos.estatus.avance}">
+      </div>
+      <div class="editor-row">
+        <label>Estado:</label>
+        <input type="text" id="estado" value="${datos.estatus.estado}">
+      </div>
+
+      <div class="edit-section">
+        <h5>📊 Desempeño por Área</h5>
+        <table class="edit-table" id="kpi-table">
+          <tr><th>Área</th><th>Planeado %</th><th>Real %</th><th></th></tr>
+        </table>
+        <button class="btn-add" onclick="agregarKPI()">+ Agregar Área</button>
+      </div>
+
+      <div class="edit-section">
+        <h5>⚠️ Riesgos</h5>
+        <table class="edit-table" id="riesgos-global-table">
+          <tr><th>Riesgo</th><th>Nivel</th><th>Plan</th><th>Resp</th><th></th></tr>
+        </table>
+        <button class="btn-add" onclick="agregarRiesgoGlobal()">+ Agregar Riesgo</button>
+      </div>`;
+
+    // Llenar KPIs
+    setTimeout(()=>{
+      const t=document.getElementById("kpi-table");
+      datos.kpi.forEach((k,i)=>{
+        t.innerHTML+=`<tr>
+          <td><input type="text" data-kpi="${i}" data-field="0" value="${k[0]}"></td>
+          <td><input type="number" data-kpi="${i}" data-field="1" value="${k[1]}"></td>
+          <td><input type="number" data-kpi="${i}" data-field="2" value="${k[2]}"></td>
+          <td><button class="btn-del" onclick="eliminarKPI(${i})">×</button></td>
+        </tr>`;
+      });
+
+      const tr=document.getElementById("riesgos-global-table");
+      datos.riesgos.forEach((r,i)=>{
+        tr.innerHTML+=`<tr>
+          <td><input type="text" data-rg="${i}" data-field="0" value="${r[0]}"></td>
+          <td><select data-rg="${i}" data-field="1">
+            <option ${r[1]==="Alto"?"selected":""}>Alto</option>
+            <option ${r[1]==="Medio"?"selected":""}>Medio</option>
+            <option ${r[1]==="Bajo"?"selected":""}>Bajo</option>
+          </select></td>
+          <td><input type="text" data-rg="${i}" data-field="2" value="${r[2]}"></td>
+          <td><input type="text" data-rg="${i}" data-field="3" value="${r[3]}"></td>
+          <td><button class="btn-del" onclick="eliminarRiesgoGlobal(${i})">×</button></td>
+        </tr>`;
+      });
+    },0);
+
+  } else {
+    html+=`
+      <div class="editor-row">
+        <label>Avance del Área (%):</label>
+        <input type="number" min="0" max="100" id="avance" value="${datos.avance}">
+      </div>
+
+      <div class="edit-section">
+        <h5>📋 Actividades</h5>
+        <table class="edit-table" id="actividades-table">
+          <tr><th>Estado</th><th>Actividad</th><th>Responsable</th><th></th></tr>
+        </table>
+        <button class="btn-add" onclick="agregarActividad()">+ Agregar Actividad</button>
+      </div>
+
+      <div class="edit-section">
+        <h5>⚠️ Riesgos</h5>
+        <table class="edit-table" id="riesgos-table">
+          <tr><th>Riesgo</th><th>Nivel</th><th>Plan</th><th>Resp</th><th></th></tr>
+        </table>
+        <button class="btn-add" onclick="agregarRiesgo()">+ Agregar Riesgo</button>
+      </div>`;
+
+    setTimeout(()=>{
+      const ta=document.getElementById("actividades-table");
+      datos.actividades.forEach((a,i)=>{
+        ta.innerHTML+=`<tr>
+          <td><select data-act="${i}" data-field="0">
+            <option ${a[0]==="ON"?"selected":""}>ON</option>
+            <option ${a[0]==="NEXT"?"selected":""}>NEXT</option>
+          </select></td>
+          <td><input type="text" data-act="${i}" data-field="1" value="${a[1]}"></td>
+          <td><input type="text" data-act="${i}" data-field="2" value="${a[2]}"></td>
+          <td><button class="btn-del" onclick="eliminarActividad(${i})">×</button></td>
+        </tr>`;
+      });
+
+      const tr=document.getElementById("riesgos-table");
+      datos.riesgos.forEach((r,i)=>{
+        tr.innerHTML+=`<tr>
+          <td><input type="text" data-riesgo="${i}" data-field="0" value="${r[0]}"></td>
+          <td><select data-riesgo="${i}" data-field="1">
+            <option ${r[1]==="Alto"?"selected":""}>Alto</option>
+            <option ${r[1]==="Medio"?"selected":""}>Medio</option>
+            <option ${r[1]==="Bajo"?"selected":""}>Bajo</option>
+          </select></td>
+          <td><input type="text" data-riesgo="${i}" data-field="2" value="${r[2]}"></td>
+          <td><input type="text" data-riesgo="${i}" data-field="3" value="${r[3]}"></td>
+          <td><button class="btn-del" onclick="eliminarRiesgo(${i})">×</button></td>
+        </tr>`;
+      });
+    },0);
+  }
+
+  document.getElementById("editor-content").innerHTML=html;
+}
+
+function actualizarFormulario(){
+  areaEditorActual = document.getElementById("area-select").value;
+  renderizarEditor();
+}
+
+function guardarCambios(){
+const area = areaEditorActual;
+  const avance=document.getElementById("avance").value;
+
+  if(area==="Global"){
+    datosEditables.Global.avance=parseInt(avance);
+    datosEditables.Global.estatus.tiempo=document.getElementById("tiempo").value;
+    datosEditables.Global.estatus.avance=document.getElementById("avanceReal").value;
+    datosEditables.Global.estatus.estado=document.getElementById("estado").value;
+
+    // Guardar KPIs
+    const kpis=[];
+    document.querySelectorAll("[data-kpi]").forEach(inp=>{
+      const idx=inp.dataset.kpi;
+      const field=inp.dataset.field;
+      if(!kpis[idx])kpis[idx]=["","",""];
+      kpis[idx][field]=field==="0"?inp.value:parseInt(inp.value);
+    });
+    datosEditables.Global.kpi=kpis.filter(k=>k[0]);
+
+    // Guardar riesgos globales
+    const rg=[];
+    document.querySelectorAll("[data-rg]").forEach(inp=>{
+      const idx=inp.dataset.rg;
+      const field=inp.dataset.field;
+      if(!rg[idx])rg[idx]=["","","",""];
+      rg[idx][field]=inp.value;
+    });
+    datosEditables.Global.riesgos=rg.filter(r=>r[0]);
+
+  } else {
+    datosEditables[area].avance=parseInt(avance);
+
+    // Guardar actividades
+    const acts=[];
+    document.querySelectorAll("[data-act]").forEach(inp=>{
+      const idx=inp.dataset.act;
+      const field=inp.dataset.field;
+      if(!acts[idx])acts[idx]=["","",""];
+      acts[idx][field]=inp.value;
+    });
+    datosEditables[area].actividades=acts.filter(a=>a[1]);
+
+    // Guardar riesgos
+    const riesgos=[];
+    document.querySelectorAll("[data-riesgo]").forEach(inp=>{
+      const idx=inp.dataset.riesgo;
+      const field=inp.dataset.field;
+      if(!riesgos[idx])riesgos[idx]=["","","",""];
+      riesgos[idx][field]=inp.value;
+    });
+    datosEditables[area].riesgos=riesgos.filter(r=>r[0]);
+  }
+
+  Object.assign(DATA,datosEditables);
+guardarDatos();
+  render();
+  
+  // Feedback visual
+  const btn=event.target;
+  const txt=btn.innerText;
+  btn.innerText="✓ Guardado";
+  setTimeout(()=>btn.innerText=txt,1500);
+}
+
+// Funciones para agregar/eliminar KPIs
+function agregarKPI(){
+  const area=document.getElementById("area-select").value;
+  datosEditables.Global.kpi.push(["Nueva Área",0,0]);
+  renderizarEditor();
+  setTimeout(()=>document.getElementById("area-select").value=area,0);
+}
+function eliminarKPI(idx){
+  datosEditables.Global.kpi.splice(idx,1);
+  const area=document.getElementById("area-select").value;
+  renderizarEditor();
+  setTimeout(()=>document.getElementById("area-select").value=area,0);
+}
+
+// Funciones para riesgos globales
+function agregarRiesgoGlobal(){
+  const area=document.getElementById("area-select").value;
+  datosEditables.Global.riesgos.push(["Nuevo riesgo","Medio","Plan","Global"]);
+  renderizarEditor();
+  setTimeout(()=>document.getElementById("area-select").value=area,0);
+}
+function eliminarRiesgoGlobal(idx){
+  datosEditables.Global.riesgos.splice(idx,1);
+  const area=document.getElementById("area-select").value;
+  renderizarEditor();
+  setTimeout(()=>document.getElementById("area-select").value=area,0);
+}
+
+// Funciones para actividades
+function agregarActividad(){
+  const area=document.getElementById("area-select").value;
+  datosEditables[area].actividades.push(["NEXT","Nueva actividad",area]);
+  renderizarEditor();
+  setTimeout(()=>document.getElementById("area-select").value=area,0);
+}
+function eliminarActividad(idx){
+  const area=document.getElementById("area-select").value;
+  datosEditables[area].actividades.splice(idx,1);
+  renderizarEditor();
+  setTimeout(()=>document.getElementById("area-select").value=area,0);
+}
+
+// Funciones para riesgos de área
+function agregarRiesgo(){
+  const area=document.getElementById("area-select").value;
+  datosEditables[area].riesgos.push(["Nuevo riesgo","Medio","Plan",area]);
+  renderizarEditor();
+  setTimeout(()=>document.getElementById("area-select").value=area,0);
+}
+function eliminarRiesgo(idx){
+  const area=document.getElementById("area-select").value;
+  datosEditables[area].riesgos.splice(idx,1);
+  renderizarEditor();
+  setTimeout(()=>document.getElementById("area-select").value=area,0);
+}
+
+updateClock();
+cargarDatos();   // 👈 primero carga lo guardado
+
+// 🔑 SINCRONIZAR EDITOR CON DATOS GUARDADOS
+datosEditables = JSON.parse(JSON.stringify(DATA));
+
+
+render();        // 👈 luego pinta la pantalla
+
+setInterval(updateClock, 1000);
+updateClock();
+
+</script>
+
+
+</body>
+</html>
